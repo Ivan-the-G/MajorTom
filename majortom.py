@@ -26,6 +26,12 @@ screen = pygame.display.set_mode((fenster_breite, fenster_höhe))
 
 pygame.display.set_caption("MajorTom")
 
+rakete = pygame.image.load("Raketeo.xcf")
+rakete = pygame.transform.scale(rakete, (60,60))
+
+raketef = pygame.image.load("RaketeF.xcf")
+raketef = pygame.transform.scale(raketef, (60,60))
+
 #Schleife Hauptprogramm
 spielaktiv = True
 clock = pygame.time.Clock()
@@ -57,10 +63,16 @@ while spielaktiv:
 
     #Spielfeld löschen
     screen.fill(SCHWARZ)
+    # Spielfeld/figur(en) zeichnen (davor Spielfeld löschen)
     pygame.draw.circle(screen,WEISS, (320, 240), 50)
     pygame.draw.polygon(screen,GELB,((100+x,100+y),(150+x,150+y),(150+x,100+y)))
     pygame.draw.circle(screen, WEISS, (x1, x1), 10)
-    # Spielfeld/figur(en) zeichnen (davor Spielfeld löschen)
+    if pygame.key.get_pressed()[pygame.K_UP]:
+        screen.blit(raketef, (150+x,150+y))
+    else:
+        screen.blit(rakete, (150+x,150+y))
+
+
 
     # Fenster aktualisieren
     pygame.display.flip()
