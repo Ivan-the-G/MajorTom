@@ -78,6 +78,10 @@ def rakete_turn(change):
 def draw():
     pygame.draw.circle(screen, WEISS, (320, 240), 50)
     pygame.draw.polygon(screen, GELB, ((rakete.x,rakete.y), (50 + rakete.x,rakete.y), (25 + rakete.x, 50 + rakete.y)))
+    if pygame.key.get_pressed()[pygame.K_UP]:
+        screen.blit(raketef, (150+x,150+y))
+    else:
+        screen.blit(rakete, (150+x,150+y))
     #pygame.draw.circle(screen, WEISS, (x1, x1), 10)
 
 #----------------------------------------------------------------------------rakete_move
@@ -88,6 +92,11 @@ def rakete_move():
     print(str(rakete.x_geschwi) + "   " + str(rakete.y_geschwi))
 
 
+rakete = pygame.image.load("Raketeo.png")
+rakete = pygame.transform.scale(rakete, (60,60))
+
+raketef = pygame.image.load("RaketeF.png")
+raketef = pygame.transform.scale(raketef, (60,60))
 
 #Schleife Hauptprogramm
 spielaktiv = True
