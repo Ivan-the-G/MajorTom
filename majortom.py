@@ -1,5 +1,6 @@
 import pygame
 import random
+from dataclasses import dataclass
 pygame.init()
 
 ORANGE = (250,140,0)
@@ -16,8 +17,12 @@ x = 0
 y = 0
 
 #Fenster öffnen
-pygame.display.set_mode((640,480))
-screen = pygame.display.set_mode((640,480))
+
+fenster_breite = 640
+fenster_höhe = 480
+
+pygame.display.set_mode((fenster_breite,fenster_höhe))
+screen = pygame.display.set_mode((fenster_breite, fenster_höhe))
 
 pygame.display.set_caption("MajorTom")
 
@@ -30,22 +35,16 @@ while spielaktiv:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             spielaktiv = False
-            print("Spieler hat Quit-Button gedrückt")
-        elif event.type == pygame.KEYDOWN:
-            print("Spieler hat Taste gedrückt")
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             print("Spieler hast Maus angeklickt")
 
             # Taste für Spieler 2
-            if event.key == pygame.K_w:
-                print("Spieler hat Taste w gedrückt")
-            elif event.key == pygame.K_a:
-                print("Spieler hat Taste a gedrückt")
-            elif event.key == pygame.K_s:
-                print("Spieler hat Taste s gedrückt")
-            elif event.key == pygame.K_d:
-                print("Spieler hat Taste d gedrückt")
+
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                quit()
+
     if pygame.key.get_pressed()[pygame.K_RIGHT]:
         x = x + 10
     if pygame.key.get_pressed()[pygame.K_LEFT]:
