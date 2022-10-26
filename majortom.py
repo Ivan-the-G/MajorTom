@@ -1,6 +1,7 @@
 import pygame
 import random
 from dataclasses import dataclass
+from math import  sin,cos,pi
 pygame.init()
 
 ORANGE = (250,140,0)
@@ -13,22 +14,86 @@ GRAU   = (150,150,150)
 
 x1 = random.randint(10,640)
 y1 = random.randint(10,480)
+
 x = 0
 y = 0
 
-#Fenster öffnen
+"""
 
-fenster_breite = 640
-fenster_höhe = 480
+
+"""
+
+
+#Fenster öffnen
+#======================================================================Init_Fenster
+fenster_breite = 1000
+fenster_höhe = 1000
 
 pygame.display.set_mode((fenster_breite,fenster_höhe))
 screen = pygame.display.set_mode((fenster_breite, fenster_höhe))
 
 pygame.display.set_caption("MajorTom")
 
+#=========================================================================Init_objekt
+@dataclass
+class Body:
+    winkel: float
+    beschleunigugn:int
+    x_geschwi: float
+    y_geschwi: float
+    x:float
+    y:float
+
+#=======================================================================Init_Rakete
+rakete = Body(
+    winkel = 90,
+    beschleunigugn=1,
+    x_geschwi=0,
+    y_geschwi=0,
+    x= fenster_breite//2,
+    y= fenster_breite//2
+)
+
+#---------------------------------------------------------------------------rakete_push
+def rakete_push(puch):
+    rakete.x_geschwi += cos(rakete.winkel * pi / 180)*rakete.beschleunigugn
+    rakete.y_geschwi += -sin(rakete.winkel * pi / 180)*rakete.beschleunigugn
+    #print(rakete.x_geschwi,rakete.y_geschwi)
+
+
+
+#x*Pi/180
+#---------------------------------------------------------------------------rakete_turn
+def rakete_turn(change):
+    rakete.winkel = rakete.winkel -change
+    if rakete.winkel == 370:
+        rakete.winkel = 10
+    if rakete.winkel == -10:
+        rakete.winkel = 350
+    #print(rakete.winkel)
+
+
+
+#---------------------------------------------------------------------------draw
+def draw():
+    pygame.draw.circle(screen, WEISS, (320, 240), 50)
+    pygame.draw.polygon(screen, GELB, ((rakete.x,rakete.y), (50 + rakete.x,rakete.y), (25 + rakete.x, 50 + rakete.y)))
+    #pygame.draw.circle(screen, WEISS, (x1, x1), 10)
+
+#----------------------------------------------------------------------------rakete_move
+def rakete_move():
+    rakete.x += rakete.x_geschwi
+    rakete.y += rakete.y_geschwi
+    #print("a",end="")
+    print(str(rakete.x_geschwi) + "   " + str(rakete.y_geschwi))
+
+
+
 #Schleife Hauptprogramm
 spielaktiv = True
 clock = pygame.time.Clock()
+
+zähler = 0
 
 while spielaktiv:
     #Überprüfen, ob Nutzer eine Aktion durchgeführt hat
@@ -36,8 +101,7 @@ while spielaktiv:
         if event.type == pygame.QUIT:
             spielaktiv = False
 
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            print("Spieler hast Maus angeklickt")
+        elif event.type == pygame.KEYDOWN:
 
             # Taste für Spieler 2
 
@@ -46,20 +110,26 @@ while spielaktiv:
                 quit()
 
     if pygame.key.get_pressed()[pygame.K_RIGHT]:
-        x = x + 10
+        rakete_turn(10)
     if pygame.key.get_pressed()[pygame.K_LEFT]:
-        x = x - 10
+        rakete_turn(-10)
     if pygame.key.get_pressed()[pygame.K_DOWN]:
-        y = y + 10
+        rakete_push(10)
     if pygame.key.get_pressed()[pygame.K_UP]:
-        y = y - 10
+        rakete_push(-10)
+
+
+    if zähler == 10:
+        rakete_move()
+        zähler = 0
+    zähler += 1
+
     # Spiellogik hier integrieren
 
     #Spielfeld löschen
     screen.fill(SCHWARZ)
-    pygame.draw.circle(screen,WEISS, (320, 240), 50)
-    pygame.draw.polygon(screen,GELB,((100+x,100+y),(150+x,150+y),(150+x,100+y)))
-    pygame.draw.circle(screen, WEISS, (x1, x1), 10)
+
+    draw()
     # Spielfeld/figur(en) zeichnen (davor Spielfeld löschen)
 
     # Fenster aktualisieren
