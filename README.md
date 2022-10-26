@@ -1,2 +1,2 @@
 # MajorTom
-Spielprojekt
+Spielprojekt für Praktikum
