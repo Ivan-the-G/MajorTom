@@ -26,10 +26,10 @@ screen = pygame.display.set_mode((fenster_breite, fenster_höhe))
 
 pygame.display.set_caption("MajorTom")
 
-rakete = pygame.image.load("Raketeo.xcf")
+rakete = pygame.image.load("Raketeo.png")
 rakete = pygame.transform.scale(rakete, (60,60))
 
-raketef = pygame.image.load("RaketeF.xcf")
+raketef = pygame.image.load("RaketeF.png")
 raketef = pygame.transform.scale(raketef, (60,60))
 
 #Schleife Hauptprogramm
