@@ -67,6 +67,17 @@ mond = Body(
     y= fenster_breite//2
 )
 
+#=======================================================================explosion
+explosion = Body(
+    winkel = 00,
+    beschleunigugn=0,
+    masse = 0,
+    x_geschwi=0,
+    y_geschwi=0,
+    x= fenster_breite//2,
+    y= fenster_breite//2
+)
+
 #---------------------------------------------------------------------------rakete_push
 def rakete_push(puch):
     rakete.x_geschwi += cos(rakete.winkel * pi / 180)*rakete.beschleunigugn
@@ -96,6 +107,9 @@ def draw():
         image = raketef
     else:
         image = raketeo
+
+    if pygame.key.get_pressed()[pygame.K_DOWN]:
+        image = explosioni
 
 
     image = pygame.transform.rotate(image, rakete.winkel-45)
