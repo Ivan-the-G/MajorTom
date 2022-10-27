@@ -1,3 +1,6 @@
+from copy import deepcopy
+from typing import Optional
+
 import pygame
 import random
 from dataclasses import dataclass
@@ -37,19 +40,23 @@ pygame.display.set_caption("MajorTom")
 #=========================================================================Init_objekt
 @dataclass
 class Body:
-    winkel: float
-    beschleunigugn:float
-    masse:float
-    x_geschwi: float
-    y_geschwi: float
-    x:float
-    y:float
+    x: float
+    y: float
+    winkel: float = 0
+    beschleunigugn:float = 0
+    masse:float = 0
+    radius:float =0
+    klebt_an:Optional["Body"] = None
+    x_geschwi: float = 0
+    y_geschwi: float = 0
+
 
 #=======================================================================Init_Rakete
 rakete = Body(
     winkel = 90,
-    beschleunigugn=0.1,
+    beschleunigugn=0.15,
     masse = 10,
+    radius= 30,
     x_geschwi=0,
     y_geschwi=0,
     x= 100,
@@ -61,6 +68,7 @@ mond = Body(
     winkel = 00,
     beschleunigugn=0,
     masse = 1000,
+    radius= 70,
     x_geschwi=0,
     y_geschwi=0,
     x= fenster_breite//2,
@@ -89,7 +97,8 @@ def rakete_turn(change):
 
 #---------------------------------------------------------------------------draw
 def draw():
-    pygame.draw.circle(screen, WEISS, (mond.x, mond.y), 50)
+    pygame.draw.circle(screen, WEISS, (int(mond.x), int(mond.y)), mond.radius)
+    #pygame.draw.circle(screen, WEISS, (int(rakete.x), int(rakete.y)), rakete.radius)
     #pygame.draw.polygon(screen, GELB, ((rakete.x,rakete.y), (50 + rakete.x,rakete.y), (25 + rakete.x, 50 + rakete.y)))
 
     if pygame.key.get_pressed()[pygame.K_UP]:
@@ -99,19 +108,44 @@ def draw():
 
 
     image = pygame.transform.rotate(image, rakete.winkel-45)
-    screen.blit(image, (rakete.x - int(image.get_width() / 2), rakete.y - int(image.get_height() / 2)))
+    screen.blit(image, (int(rakete.x - image.get_width() / 2), rakete.y - int(image.get_height() / 2)))
 
-
-
-
-    #pygame.draw.circle(screen, WEISS, (x1, x1), 10)
 
 #----------------------------------------------------------------------------rakete_move
 def rakete_move():
+    global rakete
     schwerkraft(rakete,mond)
+    rakete_kopy = deepcopy(rakete)
 
-    rakete.x += rakete.x_geschwi
-    rakete.y += rakete.y_geschwi
+
+    if pygame.key.get_pressed()[pygame.K_UP]:
+        rakete.klebt_an = None
+
+    if rakete.klebt_an == None:
+        rakete.x += rakete.x_geschwi
+        rakete.y += rakete.y_geschwi
+    else:
+        rakete.x_geschwi = rakete.klebt_an.x_geschwi
+        rakete.y_geschwi = rakete.klebt_an.y_geschwi
+"""
+    if rakete.klebt_an:
+        if pygame.key.get_pressed()[pygame.K_UP]:
+            rakete_kopy = deepcopy(rakete)
+            rakete_kopy.klebt_an = None
+            rakete_kopy.x += rakete_kopy.x_geschwi+cos(rakete_kopy.winkel * pi / 180)*rakete_kopy.beschleunigugn
+            rakete_kopy.y += rakete_kopy.y_geschwi+-sin(rakete_kopy.winkel * pi / 180)*rakete_kopy.beschleunigugn
+            if berührung[0](rakete_kopy,mond):
+                pass
+            else:
+                rakete= rakete_kopy
+    else:
+        if rakete.klebt_an == None:
+            rakete.x += rakete.x_geschwi
+            rakete.y += rakete.y_geschwi
+        else:
+            rakete.x_geschwi = rakete.klebt_an.x_geschwi
+            rakete.y_geschwi = rakete.klebt_an.y_geschwi
+"""
     #print("a",end="")
     #print(str(rakete.x_geschwi) + "   " + str(rakete.y_geschwi))
 
@@ -125,8 +159,46 @@ def schwerkraft(objekt1,objekt2):
     objekt1.y_geschwi += -beschleuigung_y*objekt2.masse
 
 
+#----------------------------------------------------------------------------abstandsdifferenz
+def geschwindikeits_differenz(objekt1,objekt2):
+    differenz = sqrt((objekt1.x_geschwi - objekt2.x_geschwi) ** 2 + (objekt1.y_geschwi - objekt2.y_geschwi) ** 2)
+    return differenz
 
-    #return beschleuigung_x,beschleuigung_y
+#----------------------------------------------------------------------------chek_kollison
+def chek_kollison(objekt1,objekt2):
+    kontakt,krasch = berührung(objekt1,objekt2)
+    if kontakt:
+        if krasch:
+            objekt1.x_geschwi = 0
+            objekt1.y_geschwi = 0
+            objekt1.x = 100
+            objekt1.y = 100
+        else:
+            objekt1.klebt_an= objekt2
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------kolison
+def berührung(objekt1,objekt2):
+    kolison = False
+    krash = False
+    abstand = sqrt((objekt1.x - objekt2.x) ** 2 + (objekt1.y - objekt2.y) ** 2)
+    if abstand < objekt1.radius+objekt2.radius:
+        kolison = True
+        if geschwindikeits_differenz(objekt1,objekt2) < 3:
+            krash = False
+        else:
+            krash = True
+
+
+    return kolison,krash
+
 
 
 
@@ -137,13 +209,12 @@ raketeo = pygame.transform.scale(raketeo, (60,60))
 raketef = pygame.image.load("RaketeF.png")
 raketef = pygame.transform.scale(raketef, (60,60))
 
-masse_mond = 1000000
 
 #Schleife Hauptprogramm
 spielaktiv = True
 clock = pygame.time.Clock()
 
-
+#==============================================================================================Main_wihle
 while spielaktiv:
     #Überprüfen, ob Nutzer eine Aktion durchgeführt hat
     for event in pygame.event.get():
@@ -173,6 +244,8 @@ while spielaktiv:
 
     #Spielfeld löschen
     screen.fill(SCHWARZ)
+
+    chek_kollison(rakete,mond)
 
     draw()
     # Spielfeld/figur(en) zeichnen (davor Spielfeld löschen)
