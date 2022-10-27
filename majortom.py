@@ -1,7 +1,7 @@
 import pygame
 import random
 from dataclasses import dataclass
-from math import  sin,cos,pi
+from math import  sin,cos,pi,sqrt
 pygame.init()
 
 ORANGE = (250,140,0)
@@ -39,6 +39,7 @@ pygame.display.set_caption("MajorTom")
 class Body:
     winkel: float
     beschleunigugn:float
+    masse:float
     x_geschwi: float
     y_geschwi: float
     x:float
@@ -48,6 +49,18 @@ class Body:
 rakete = Body(
     winkel = 90,
     beschleunigugn=0.1,
+    masse = 10,
+    x_geschwi=0,
+    y_geschwi=0,
+    x= 100,
+    y= 100
+)
+
+#=======================================================================mond
+mond = Body(
+    winkel = 00,
+    beschleunigugn=0,
+    masse = 1000,
     x_geschwi=0,
     y_geschwi=0,
     x= fenster_breite//2,
@@ -76,7 +89,7 @@ def rakete_turn(change):
 
 #---------------------------------------------------------------------------draw
 def draw():
-    pygame.draw.circle(screen, WEISS, (320, 240), 50)
+    pygame.draw.circle(screen, WEISS, (mond.x, mond.y), 50)
     #pygame.draw.polygon(screen, GELB, ((rakete.x,rakete.y), (50 + rakete.x,rakete.y), (25 + rakete.x, 50 + rakete.y)))
 
     if pygame.key.get_pressed()[pygame.K_UP]:
@@ -86,7 +99,6 @@ def draw():
 
 
     image = pygame.transform.rotate(image, rakete.winkel-45)
-
     screen.blit(image, (rakete.x - int(image.get_width() / 2), rakete.y - int(image.get_height() / 2)))
 
 
@@ -96,23 +108,41 @@ def draw():
 
 #----------------------------------------------------------------------------rakete_move
 def rakete_move():
+    schwerkraft(rakete,mond)
+
     rakete.x += rakete.x_geschwi
     rakete.y += rakete.y_geschwi
     #print("a",end="")
     #print(str(rakete.x_geschwi) + "   " + str(rakete.y_geschwi))
 
+#----------------------------------------------------------------------------schwerkraft
+def schwerkraft(objekt1,objekt2):
+    abstand = sqrt((objekt1.x-objekt2.x)**2+(objekt1.y-objekt2.y)**2)
+    beschleuigung_x = (objekt1.x-objekt2.x)/abstand**3
+    beschleuigung_y = (objekt1.y-objekt2.y)/abstand**3
 
+    objekt1.x_geschwi += -beschleuigung_x*objekt2.masse
+    objekt1.y_geschwi += -beschleuigung_y*objekt2.masse
+
+
+
+    #return beschleuigung_x,beschleuigung_y
+
+
+
+#=============================================================================Init_algemein
 raketeo = pygame.image.load("Raketeo.png")
 raketeo = pygame.transform.scale(raketeo, (60,60))
 
 raketef = pygame.image.load("RaketeF.png")
 raketef = pygame.transform.scale(raketef, (60,60))
 
+masse_mond = 1000000
+
 #Schleife Hauptprogramm
 spielaktiv = True
 clock = pygame.time.Clock()
 
-zähler = 0
 
 while spielaktiv:
     #Überprüfen, ob Nutzer eine Aktion durchgeführt hat
@@ -132,16 +162,12 @@ while spielaktiv:
         rakete_turn(5)
     if pygame.key.get_pressed()[pygame.K_LEFT]:
         rakete_turn(-5)
-    if pygame.key.get_pressed()[pygame.K_DOWN]:
-        rakete_push(10)
     if pygame.key.get_pressed()[pygame.K_UP]:
         rakete_push(-10)
 
 
-    if zähler == 1:
-        rakete_move()
-        zähler = 0
-    zähler += 1
+    rakete_move()
+
 
     # Spiellogik hier integrieren
 
