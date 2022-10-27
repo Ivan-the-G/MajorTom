@@ -47,13 +47,13 @@ class Body:
 
 #=======================================================================Init_Rakete
 rakete = Body(
-    winkel = 90,
+    winkel = 0,
     beschleunigugn=0.1,
     masse = 10,
-    x_geschwi=0,
+    x_geschwi=2,
     y_geschwi=0,
-    x= 100,
-    y= 100
+    x= fenster_breite//2,
+    y= fenster_breite//4
 )
 
 #=======================================================================mond
