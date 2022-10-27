@@ -38,7 +38,7 @@ pygame.display.set_caption("MajorTom")
 @dataclass
 class Body:
     winkel: float
-    beschleunigugn:int
+    beschleunigugn:float
     x_geschwi: float
     y_geschwi: float
     x:float
@@ -47,7 +47,7 @@ class Body:
 #=======================================================================Init_Rakete
 rakete = Body(
     winkel = 90,
-    beschleunigugn=1,
+    beschleunigugn=0.1,
     x_geschwi=0,
     y_geschwi=0,
     x= fenster_breite//2,
@@ -66,10 +66,10 @@ def rakete_push(puch):
 #---------------------------------------------------------------------------rakete_turn
 def rakete_turn(change):
     rakete.winkel = rakete.winkel -change
-    if rakete.winkel == 370:
-        rakete.winkel = 10
-    if rakete.winkel == -10:
-        rakete.winkel = 350
+    if rakete.winkel > 360:
+        rakete.winkel -= 360
+    if rakete.winkel < 0:
+        rakete.winkel += 350
     #print(rakete.winkel)
 
 
@@ -77,11 +77,21 @@ def rakete_turn(change):
 #---------------------------------------------------------------------------draw
 def draw():
     pygame.draw.circle(screen, WEISS, (320, 240), 50)
-    pygame.draw.polygon(screen, GELB, ((rakete.x,rakete.y), (50 + rakete.x,rakete.y), (25 + rakete.x, 50 + rakete.y)))
+    #pygame.draw.polygon(screen, GELB, ((rakete.x,rakete.y), (50 + rakete.x,rakete.y), (25 + rakete.x, 50 + rakete.y)))
+
     if pygame.key.get_pressed()[pygame.K_UP]:
-        screen.blit(raketef, (150+x,150+y))
+        image = raketef
     else:
-        screen.blit(rakete, (150+x,150+y))
+        image = raketeo
+
+
+    image = pygame.transform.rotate(image, rakete.winkel-45)
+
+    screen.blit(image, (rakete.x - int(image.get_width() / 2), rakete.y - int(image.get_height() / 2)))
+
+
+
+
     #pygame.draw.circle(screen, WEISS, (x1, x1), 10)
 
 #----------------------------------------------------------------------------rakete_move
@@ -89,11 +99,11 @@ def rakete_move():
     rakete.x += rakete.x_geschwi
     rakete.y += rakete.y_geschwi
     #print("a",end="")
-    print(str(rakete.x_geschwi) + "   " + str(rakete.y_geschwi))
+    #print(str(rakete.x_geschwi) + "   " + str(rakete.y_geschwi))
 
 
-rakete = pygame.image.load("Raketeo.png")
-rakete = pygame.transform.scale(rakete, (60,60))
+raketeo = pygame.image.load("Raketeo.png")
+raketeo = pygame.transform.scale(raketeo, (60,60))
 
 raketef = pygame.image.load("RaketeF.png")
 raketef = pygame.transform.scale(raketef, (60,60))
@@ -119,16 +129,16 @@ while spielaktiv:
                 quit()
 
     if pygame.key.get_pressed()[pygame.K_RIGHT]:
-        rakete_turn(10)
+        rakete_turn(5)
     if pygame.key.get_pressed()[pygame.K_LEFT]:
-        rakete_turn(-10)
+        rakete_turn(-5)
     if pygame.key.get_pressed()[pygame.K_DOWN]:
         rakete_push(10)
     if pygame.key.get_pressed()[pygame.K_UP]:
         rakete_push(-10)
 
 
-    if zähler == 10:
+    if zähler == 1:
         rakete_move()
         zähler = 0
     zähler += 1
