@@ -54,9 +54,13 @@ rakete = Body(
     y_geschwi=0,
     x= 100,
     y= 100
+
 )
 
 #=======================================================================mond
+mondi = pygame.image.load("MondComic.png")
+mondi = pygame.transform.scale(mondi, (150,150))
+
 mond = Body(
     winkel = 00,
     beschleunigugn=0,
@@ -64,10 +68,16 @@ mond = Body(
     x_geschwi=0,
     y_geschwi=0,
     x= fenster_breite//2,
-    y= fenster_breite//2
+    y= fenster_breite//2,
 )
 
 #---------------------------------------------------------------------------rakete_push
+raketeo = pygame.image.load("Raketeo.png")
+raketeo = pygame.transform.scale(raketeo, (60,60))
+
+raketef = pygame.image.load("RaketeF.png")
+raketef = pygame.transform.scale(raketef, (60,60))
+
 def rakete_push(puch):
     rakete.x_geschwi += cos(rakete.winkel * pi / 180)*rakete.beschleunigugn
     rakete.y_geschwi += -sin(rakete.winkel * pi / 180)*rakete.beschleunigugn
@@ -89,7 +99,9 @@ def rakete_turn(change):
 
 #---------------------------------------------------------------------------draw
 def draw():
-    pygame.draw.circle(screen, WEISS, (mond.x, mond.y), 50)
+    screen.blit(hintergrund,(0,0))
+    screen.blit(mondi,(mond.x -75,mond.y -75))
+
     #pygame.draw.polygon(screen, GELB, ((rakete.x,rakete.y), (50 + rakete.x,rakete.y), (25 + rakete.x, 50 + rakete.y)))
 
     if pygame.key.get_pressed()[pygame.K_UP]:
@@ -131,11 +143,10 @@ def schwerkraft(objekt1,objekt2):
 
 
 #=============================================================================Init_algemein
-raketeo = pygame.image.load("Raketeo.png")
-raketeo = pygame.transform.scale(raketeo, (60,60))
 
-raketef = pygame.image.load("RaketeF.png")
-raketef = pygame.transform.scale(raketef, (60,60))
+
+hintergrund = pygame.image.load("Universum3.jpg")
+hintergrund = pygame.transform.scale(hintergrund, (1000,1000))
 
 masse_mond = 1000000
 
