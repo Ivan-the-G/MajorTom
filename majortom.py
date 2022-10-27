@@ -133,15 +133,14 @@ def draw():
     else:
         image = raketeo
 
-    if pygame.key.get_pressed()[pygame.K_DOWN]:
-        explosion_time = pygame.time.get_ticks()
-
     if explosion_time is not None:
         delta_t = pygame.time.get_ticks() - explosion_time
         if delta_t > 1000:
             image = pygame.image.load("leer.png")
+
         else:
             image = explosioni
+
 
     image = pygame.transform.rotate(image, rakete.winkel-45)
     screen.blit(image, (int(rakete.x - image.get_width() / 2), rakete.y - int(image.get_height() / 2)))
@@ -203,12 +202,18 @@ def geschwindikeits_differenz(objekt1,objekt2):
 #----------------------------------------------------------------------------chek_kollison
 def chek_kollison(objekt1,objekt2):
     kontakt,krasch = berührung(objekt1,objekt2)
+    global explosion_time
     if kontakt:
         if krasch:
+            objekt1.klebt_an = objekt2
+            explosion_time = pygame.time.get_ticks()
+
+            """            
             objekt1.x_geschwi = 0
             objekt1.y_geschwi = 0
             objekt1.x = 100
             objekt1.y = 100
+            """
         else:
             objekt1.klebt_an= objekt2
 
