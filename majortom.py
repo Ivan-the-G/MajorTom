@@ -1,3 +1,5 @@
+from time import sleep
+
 import pygame
 import random
 from dataclasses import dataclass
@@ -17,6 +19,8 @@ y1 = random.randint(10,480)
 
 x = 0
 y = 0
+
+explosion_time = None
 
 """
 
@@ -71,6 +75,8 @@ mond = Body(
 )
 
 #=======================================================================explosion
+explosioni = pygame.image.load("explosion.png")
+explosioni = pygame.transform.scale(explosioni, (50,50))
 explosion = Body(
     winkel = 00,
     beschleunigugn=0,
@@ -109,6 +115,7 @@ def rakete_turn(change):
 
 #---------------------------------------------------------------------------draw
 def draw():
+    global explosion_time
     screen.blit(hintergrund,(0,0))
     screen.blit(mondi,(mond.x -75,mond.y -75))
 
@@ -120,8 +127,14 @@ def draw():
         image = raketeo
 
     if pygame.key.get_pressed()[pygame.K_DOWN]:
-        image = explosioni
+        explosion_time = pygame.time.get_ticks()
 
+    if explosion_time is not None:
+        delta_t = pygame.time.get_ticks() - explosion_time
+        if delta_t > 1000:
+            image = pygame.image.load("leer.png")
+        else:
+            image = explosioni
 
     image = pygame.transform.rotate(image, rakete.winkel-45)
     screen.blit(image, (rakete.x - int(image.get_width() / 2), rakete.y - int(image.get_height() / 2)))
@@ -200,6 +213,8 @@ while spielaktiv:
 
     draw()
     # Spielfeld/figur(en) zeichnen (davor Spielfeld löschen)
+
+
 
     # Fenster aktualisieren
     pygame.display.flip()
