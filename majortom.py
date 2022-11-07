@@ -1,35 +1,16 @@
-from copy import deepcopy
+import math
 from typing import Optional
 
 import pygame
-import random
 from dataclasses import dataclass
 from math import  sin,cos,pi,sqrt
 
+from pygame.draw_py import Point
+from pygame.surface import Surface
 
 pygame.init()
 
-ORANGE = (250,140,0)
-GELB   = (255,255,0)
-ROT    = (255,0,0)
-GRUEN  = (0,255,0)
-SCHWARZ= (0,0,0)
 WEISS  = (255,255,255)
-GRAU   = (150,150,150)
-
-x1 = random.randint(10,640)
-y1 = random.randint(10,480)
-
-x = 0
-y = 0
-
-explosion_time = None
-
-"""
-
-
-"""
-
 
 #Fenster öffnen
 #======================================================================Init_Fenster
@@ -52,15 +33,23 @@ clock = pygame.time.Clock()
 class Body:
     x: float
     y: float
-    bild: list
+    bild: Optional[Surface] = None
     stabilität: int = 1000
     winkel: float = 0
-    beschleunigugn:float = 0
     masse:float = 0
     radius:float =0
     klebt_an:Optional["Body"] = None
+    klebestelle: Optional[Point] = None
     x_geschwi: float = 0
     y_geschwi: float = 0
+    skraft: bool = True
+    bildausrichtung: float = 0
+
+    def __post_init__(self):
+        self.explosion_time = None
+
+    def explodiere(self):
+        self.explosion_time = pygame.time.get_ticks()
 
     # ---------------------------------------------------------------------------BODY.turn
     def turn(self,change):
@@ -72,38 +61,49 @@ class Body:
 
 
     # ---------------------------------------------------------------------------BODY.draw_self
-    def draw_self(self,bild):
+    def draw(self):
+        image = self.bild
+        if self.explosion_time is not None:
+            delta_t = pygame.time.get_ticks() - self.explosion_time
+            if delta_t > 1000:
+                image = None
+            else:
+                image = explosioni
 
-        image = pygame.transform.rotate(bild, self.winkel - 45)
-        screen.blit(image, (int(self.x - image.get_width() / 2), self.y - int(image.get_height() / 2)))
+        if image is not None:
+            image = pygame.transform.rotate(image, self.winkel - self.bildausrichtung)
+            screen.blit(image, (int(self.x - image.get_width() / 2), self.y - int(image.get_height() / 2)))
 
-    # ---------------------------------------------------------------------------BODY.push
-    def push(self,puch):
-        self.x_geschwi += cos(self.winkel * pi / 180) * self.beschleunigugn
-        self.y_geschwi += -sin(self.winkel * pi / 180) * self.beschleunigugn
 
-    # ----------------------------------------------------------------------------BODY.chek_kollison
-    def chek_kollison(self, objekt2):
-        geschwindikeit = None
-
-        abstand = sqrt((self.x - objekt2.x) ** 2 + (self.y - objekt2.y) ** 2)
-
-        if abstand < self.radius + objekt2.radius:
-            geschwindikeit = geschwindikeits_differenz(self, objekt2)
-
-        return geschwindikeit
+    def kollision(self, other: "Body"):
+        pass
 
     # ----------------------------------------------------------------------------BODY.move
-    def move(self,skraft=True):
-        #print("move")
-        if skraft:
-            schwerkraft(self, mond)
+    def move(self, bodies: list["Body"]):
+        if self.klebt_an is None:
+            self.freie_bewegung(bodies)
+        else:
+            self.angeklebte_bewegung()
+
+    def angeklebte_bewegung(self):
+        self.x = self.klebt_an.x + self.klebestelle.x
+        self.y = self.klebt_an.y + self.klebestelle.y
+        self.x_geschwi = self.klebt_an.x_geschwi
+        self.y_geschwi = self.klebt_an.y_geschwi
+
+    def freie_bewegung(self, bodies):
+        if self.skraft:
+            for body in bodies:
+                if body!=self and body.masse:
+                    schwerkraft(self, body)
 
         self.x += self.x_geschwi
         self.y += self.y_geschwi
 
-
-
+@dataclass
+class Level:
+    hintergrund: Surface
+    bodies: list[Body]
 
 #=======================================================================Init_Rakete
 raketeo = pygame.image.load("Raketeo.png")
@@ -115,10 +115,76 @@ raketef = pygame.transform.scale(raketef, (60,60))
 explosioni = pygame.image.load("explosion.png")
 explosioni = pygame.transform.scale(explosioni, (50,50))
 
-rakete = Body(
+@dataclass
+class Rakete(Body):
+    bildausrichtung: float = 45.
+    beschleunigung = 0.15
+
+    def move(self, bodies: list[Body]):
+        if pygame.key.get_pressed()[pygame.K_RIGHT]:
+            self.turn(5)
+        if pygame.key.get_pressed()[pygame.K_LEFT]:
+            self.turn(-5)
+        if pygame.key.get_pressed()[pygame.K_UP]:
+            self.klebt_an = None
+            self.push()
+        super().move(bodies)
+
+    def push(self):
+        self.x_geschwi += cos(self.winkel * pi / 180) * self.beschleunigung
+        self.y_geschwi += -sin(self.winkel * pi / 180) * self.beschleunigung
+
+    def draw(self):
+        if pygame.key.get_pressed()[pygame.K_UP]:
+            self.bild = raketef
+        else:
+            self.bild = raketeo
+        super().draw()
+
+    def kollision(self, other: "Body"):
+        if isinstance(other, Mond):
+            self.kollision_mond(other)
+        if isinstance(other, Asteroid):
+            self.explodiere()
+
+    def kollision_mond(self, mond: "Mond"):
+        self.klebt_an = mond
+        self.klebestelle = Point(self.x - mond.x, self.y - mond.y)
+        self.klebestelle = skaliere_vector(self.klebestelle, mond.radius+self.radius+1)
+
+        geschwie_differenz = geschwindikeits_differenz(self, mond)
+        if geschwie_differenz > self.stabilität:
+            self.explodiere()
+
+
+#=======================================================================Init_mond
+mondi = pygame.image.load("MondComic.png")
+mondi = pygame.transform.scale(mondi, (150,150))
+
+@dataclass
+class Mond(Body):
+    bild: Surface = mondi
+    skraft: bool = False
+
+@dataclass
+class Asteroid(Body):
+    masse: float = 0.
+    radius: float = 10.
+
+    def draw(self):
+        pygame.draw.circle(screen, WEISS, (self.x, self.y), self.radius)
+
+
+
+mond = Mond(
+    masse = 1000,
+    radius= 70,
+    x= fenster_breite//2,
+    y= fenster_breite//2,
+)
+
+rakete = Rakete(
     winkel = 0,
-    beschleunigugn=0.15,
-    bild = [raketeo,raketef,explosioni],
     stabilität = 3,
     masse = 10,
     radius= 30,
@@ -128,46 +194,29 @@ rakete = Body(
     y= fenster_breite//4
 )
 
-#=======================================================================Init_mond
-mondi = pygame.image.load("MondComic.png")
-mondi = pygame.transform.scale(mondi, (150,150))
+level1 = Level(
+    hintergrund = hintergrund,
+    bodies=[mond, rakete]
+)
 
-mond = Body(
-    winkel = 00,
-    beschleunigugn=0,
-    bild = [mondi],
-    masse = 1000,
-    radius= 70,
+asteroid = Asteroid(
     x_geschwi=0,
-    y_geschwi=0,
-    x= fenster_breite//2,
-    y= fenster_breite//2,
+    y_geschwi=2,
+    x= fenster_breite//4,
+    y= fenster_breite//2
+)
+
+level2 = Level(
+    hintergrund = hintergrund,
+    bodies=[mond, rakete, asteroid]
 )
 
 
 #---------------------------------------------------------------------------draw
-def draw():
-    global explosion_time
-    screen.blit(hintergrund,(0,0))
-    mond.draw_self(mond.bild[0])
-    #screen.blit(mondi,(mond.x -75,mond.y -75))
-
-    #pygame.draw.polygon(screen, GELB, ((rakete.x,rakete.y), (50 + rakete.x,rakete.y), (25 + rakete.x, 50 + rakete.y)))
-
-    if pygame.key.get_pressed()[pygame.K_UP]:
-        image = rakete.bild[1]
-    else:
-        image = rakete.bild[0]
-
-    if explosion_time is not None:
-        delta_t = pygame.time.get_ticks() - explosion_time
-        if delta_t > 1000:
-            image = pygame.image.load("leer.png")
-
-        else:
-            image = rakete.bild[2]
-
-    rakete.draw_self(image)
+def draw(level: Level):
+    screen.blit(level.hintergrund,(0,0))
+    for body in level.bodies:
+        body.draw()
 
 
 
@@ -188,58 +237,33 @@ def geschwindikeits_differenz(objekt1,objekt2):
 
 
 #----------------------------------------------------------------------------kollisionen
-def kollisionen():
-    global explosion_time
-    geschwie_differenz = rakete.chek_kollison(mond)
+def skaliere_vector(p: Point, new_length:float):
+    length_p = math.sqrt(p.x**2+p.y**2)
+    faktor = new_length/length_p
+    return Point(x=p.x*faktor, y=p.y*faktor)
 
-    if geschwie_differenz != None:
-        #print(geschwie_differenz)
-        if geschwie_differenz > rakete.stabilität:
-            #print("krasch")
-            rakete.klebt_an = mond
-            explosion_time = pygame.time.get_ticks()
 
-        else:
-            rakete.klebt_an= mond
+def chek_kollison(objekt1, objekt2) -> bool:
+    abstand = sqrt((objekt1.x - objekt2.x) ** 2 + (objekt1.y - objekt2.y) ** 2)
+    return abstand < objekt1.radius + objekt2.radius
+
+
+def kollisionen(bodies: list[Body]):
+    n = len(bodies)
+    for i in range(n):
+        for j in range(i+1,n):
+            b1 = bodies[i]
+            b2 = bodies[j]
+            if chek_kollison(b1, b2):
+                b1.kollision(b2)
+                b2.kollision(b1)
 
 # ----------------------------------------------------------------------------move
-def move():
-    klebt = False
-    # self_kopy = deepcopy(self)
+def move(level: Level):
+    for body in level.bodies:
+        body.move(level.bodies)
 
-    if rakete.klebt_an != None:
-        if pygame.key.get_pressed()[pygame.K_UP]:
-            klebt = True
-            klebt_an = rakete.klebt_an
-            rakete.klebt_an = None
-        else:
-            #print(rakete.x_geschwi)
-            rakete.x_geschwi = rakete.klebt_an.x_geschwi
-            rakete.y_geschwi = rakete.klebt_an.y_geschwi
-
-            rakete.move()
-            #print(rakete.x_geschwi)
-    else:
-        rakete.move()
-
-    if klebt:
-        x = rakete.x
-        y = rakete.y
-
-        rakete.push(-10)
-        rakete.move()
-
-        if rakete.chek_kollison(mond) == None:
-            #print("a")
-            rakete.x = x
-            rakete.y = y
-            rakete.klebt_an = klebt_an
-            #print(geschwindikeits_differenz(rakete,mond))
-
-            #rakete.x_geschwi = rakete.klebt_an.x_geschwi
-            #rakete.y_geschwi = rakete.klebt_an.y_geschwi
-
-
+level = level1
 
 #==============================================================================================Main_wihle
 while spielaktiv:
@@ -247,40 +271,18 @@ while spielaktiv:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             spielaktiv = False
-
         elif event.type == pygame.KEYDOWN:
-
-            # Taste für Spieler 2
-
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 quit()
 
-    if pygame.key.get_pressed()[pygame.K_RIGHT]:
-        rakete.turn(5)
-    if pygame.key.get_pressed()[pygame.K_LEFT]:
-        rakete.turn(-5)
-    if pygame.key.get_pressed()[pygame.K_UP]:
-        rakete.push(-10)
-
-
-    move()
-
-
-    # Spiellogik hier integrieren
-
-    #Spielfeld löschen
-    screen.fill(SCHWARZ)
-
-    kollisionen()
-
-    draw()
-    # Spielfeld/figur(en) zeichnen (davor Spielfeld löschen)
-
-
+    move(level)
+    kollisionen(level.bodies)
+    draw(level)
 
     # Fenster aktualisieren
     pygame.display.flip()
+
     # Refresh-Zeiten festlegen
     clock.tick(60) # 60fps
 
