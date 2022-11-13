@@ -5,7 +5,6 @@ import pygame
 from dataclasses import dataclass
 from math import  sin,cos,pi,sqrt
 
-from pygame.draw_py import Point
 from pygame.surface import Surface
 
 pygame.init()
@@ -39,7 +38,8 @@ class Body:
     masse:float = 0
     radius:float =0
     klebt_an:Optional["Body"] = None
-    klebestelle: Optional[Point] = None
+    klebestelle_x: float = 0
+    klebestelle_y: float = 0
     x_geschwi: float = 0
     y_geschwi: float = 0
     skraft: bool = True
@@ -86,8 +86,8 @@ class Body:
             self.angeklebte_bewegung()
 
     def angeklebte_bewegung(self):
-        self.x = self.klebt_an.x + self.klebestelle.x
-        self.y = self.klebt_an.y + self.klebestelle.y
+        self.x = self.klebt_an.x + self.klebestelle_x
+        self.y = self.klebt_an.y + self.klebestelle_y
         self.x_geschwi = self.klebt_an.x_geschwi
         self.y_geschwi = self.klebt_an.y_geschwi
 
@@ -149,8 +149,9 @@ class Rakete(Body):
 
     def kollision_mond(self, mond: "Mond"):
         self.klebt_an = mond
-        self.klebestelle = Point(self.x - mond.x, self.y - mond.y)
-        self.klebestelle = skaliere_vector(self.klebestelle, mond.radius+self.radius+1)
+        abstand_x = self.x - mond.x
+        abstand_y = self.y - mond.y
+        self.klebestelle_x, self.klebestelle_y = skaliere_vector( (abstand_x, abstand_y), mond.radius+self.radius+1)
 
         geschwie_differenz = geschwindikeits_differenz(self, mond)
         if geschwie_differenz > self.stabilität:
@@ -237,10 +238,11 @@ def geschwindikeits_differenz(objekt1,objekt2):
 
 
 #----------------------------------------------------------------------------kollisionen
-def skaliere_vector(p: Point, new_length:float):
-    length_p = math.sqrt(p.x**2+p.y**2)
+def skaliere_vector(p: tuple[float,float], new_length:float):
+    x, y = p
+    length_p = math.sqrt(x**2+y**2)
     faktor = new_length/length_p
-    return Point(x=p.x*faktor, y=p.y*faktor)
+    return x*faktor, y*faktor
 
 
 def chek_kollison(objekt1, objekt2) -> bool:
