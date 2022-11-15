@@ -1,5 +1,5 @@
 import math
-from typing import Optional
+from typing import Optional, List
 
 import pygame
 from dataclasses import dataclass
@@ -79,7 +79,7 @@ class Body:
         pass
 
     # ----------------------------------------------------------------------------BODY.move
-    def move(self, bodies: list["Body"]):
+    def move(self, bodies: List):#["Body"]):
         if self.klebt_an is None:
             self.freie_bewegung(bodies)
         else:
@@ -103,7 +103,7 @@ class Body:
 @dataclass
 class Level:
     hintergrund: Surface
-    bodies: list[Body]
+    bodies: list#[Body]
 
 #=======================================================================Init_Rakete
 raketeo = pygame.image.load("Raketeo.png")
@@ -120,7 +120,7 @@ class Rakete(Body):
     bildausrichtung: float = 45.
     beschleunigung = 0.15
 
-    def move(self, bodies: list[Body]):
+    def move(self, bodies: list):#[Body]):
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
             self.turn(5)
         if pygame.key.get_pressed()[pygame.K_LEFT]:
@@ -238,7 +238,7 @@ def geschwindikeits_differenz(objekt1,objekt2):
 
 
 #----------------------------------------------------------------------------kollisionen
-def skaliere_vector(p: tuple[float,float], new_length:float):
+def skaliere_vector(p: tuple, new_length:float): #[float,float]
     x, y = p
     length_p = math.sqrt(x**2+y**2)
     faktor = new_length/length_p
@@ -250,7 +250,7 @@ def chek_kollison(objekt1, objekt2) -> bool:
     return abstand < objekt1.radius + objekt2.radius
 
 
-def kollisionen(bodies: list[Body]):
+def kollisionen(bodies: list):#[Body]):
     n = len(bodies)
     for i in range(n):
         for j in range(i+1,n):
