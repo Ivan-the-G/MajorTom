@@ -27,13 +27,14 @@ class Rakete(Body):
     schub: float = 0.15
 
     def move(self, bodies: list):#[Body]):
-        if pygame.key.get_pressed()[pygame.K_RIGHT]:
-            self.turn(5)
-        if pygame.key.get_pressed()[pygame.K_LEFT]:
-            self.turn(-5)
-        if pygame.key.get_pressed()[pygame.K_UP]:
-            self.klebt_an = None
-            self.push()
+        if not self.ist_explodiert():
+            if pygame.key.get_pressed()[pygame.K_RIGHT]:
+                self.turn(5)
+            if pygame.key.get_pressed()[pygame.K_LEFT]:
+                self.turn(-5)
+            if pygame.key.get_pressed()[pygame.K_UP]:
+                self.klebt_an = None
+                self.push()
         super().move(bodies)
 
     def push(self):

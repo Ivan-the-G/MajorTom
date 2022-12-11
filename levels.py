@@ -20,20 +20,24 @@ class Level:
 
 
 @dataclass
-class Level1(Level):
+class LevelMondlandeMission(Level):
     mond: Mond = Mond()
     rakete: Rakete = Rakete()
     def mission_erfüllt(self) -> bool:
-        return self.rakete.klebt_an == self.mond
+        return self.rakete.klebt_an == self.mond and not self.rakete.ist_explodiert()
 
     def __post_init__(self):
         self.bodies = [self.mond, self.rakete]
 
 
 @dataclass
-class Level2(Level):
-    mond: Mond = Mond()
-    rakete: Rakete = Rakete()
+class LevelSchwererMond(LevelMondlandeMission):
+    mond: Mond = Mond(masse=1600)
+    rakete: Rakete = Rakete(x_geschwi=2.6)
+
+
+@dataclass
+class LevelAsteroid(LevelMondlandeMission):
     asteroid: Asteroid = Asteroid(
         x_geschwi=0,
         y_geschwi=2,
@@ -41,11 +45,12 @@ class Level2(Level):
         y= fenster_breite//2
     )
 
-    def mission_erfüllt(self) -> bool:
-        return self.rakete.klebt_an == self.mond
-
     def __post_init__(self):
         self.bodies = [self.mond, self.rakete, self.asteroid]
 
-levels = [Level1(), Level2()]
+levels = [
+    LevelMondlandeMission(),
+    LevelSchwererMond(),
+    LevelAsteroid(),
+]
 

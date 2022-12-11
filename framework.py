@@ -37,6 +37,9 @@ class Body:
     def explodiere(self):
         self.explosion_time = pygame.time.get_ticks()
 
+    def ist_explodiert(self):
+        return self.explosion_time is not None
+
     def turn(self,change):
         self.winkel = self.winkel - change
         if self.winkel > 360:

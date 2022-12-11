@@ -13,7 +13,7 @@ class Mond(Body):
     x: float = fenster_breite // 2
     y: float= fenster_breite // 2
     masse: float = 1000
-    radius: float = 70
+    radius: float = 75
     bild: Surface = mondi
     skraft: bool = False
 
